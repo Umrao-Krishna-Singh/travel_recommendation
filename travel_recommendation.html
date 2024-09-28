@@ -27,22 +27,23 @@
           </div>
         </li>
         <li><button id="btnSearch">Search</button></li>
-        <li><button id="btnSearch">Clear</button></li>
+        <li><button id="btnClear">Clear</button></li>
       </ul>
     </nav>
+    <div class="page">
+      <div class="wrapper-container">
+        <div class="wrapper">
+          <div class="welcome-section">
+            <header>Welcome to Travel Recommendations</header>
+            <p>
+              Discover the best travel destinations and experiences curated just for you.
+            </p>
+            <p>Start your journey with us today!</p>
+          </div>
 
-    <div class="wrapper-container">
-      <div class="wrapper">
-        <div class="welcome-section">
-          <header>Welcome to Travel Recommendations</header>
-          <p>
-            Discover the best travel destinations and experiences curated just for you.
-          </p>
-          <p>Start your journey with us today!</p>
-        </div>
-
-        <div class="cta-button">
-          <button id="bookNow">Book Now</button>
+          <div class="cta-button">
+            <button id="bookNow">Book Now</button>
+          </div>
         </div>
       </div>
     </div>
@@ -67,4 +68,82 @@
       </ul>
     </footer>
   </body>
+  <script>
+    document.getElementById("btnSearch").addEventListener("click", function () {
+      const query = document.getElementById("conditionInput").value.toLowerCase().trim();
+      if (query)
+        fetch("./travel_recommendation_api.json")
+          .then((response) => response.json())
+          .then((data) => {
+            const results = [];
+
+            if (["beach", "beaches"].includes(query)) {
+              results.push(...data.beaches);
+            } else if (["country", "countries"].includes(query)) {
+              data.countries.forEach((country) => {
+                country.cities.forEach((city) => {
+                  results.push(city);
+                });
+              });
+            } else if (["temple", "temples"].includes(query)) {
+              results.push(...data.temples);
+            } else {
+              data.countries.forEach((country) => {
+                country.cities.forEach((city) => {
+                  if (city.name.toLowerCase().includes(query)) {
+                    results.push(city);
+                  }
+                });
+              });
+              data.temples.forEach((temple) => {
+                if (temple.name.toLowerCase().includes(query)) {
+                  results.push(temple);
+                }
+              });
+              data.beaches.forEach((beach) => {
+                if (beach.name.toLowerCase().includes(query)) {
+                  results.push(beach);
+                }
+              });
+            }
+            if (results.length) displayResults(results);
+          });
+    });
+
+    function displayResults(results) {
+      const wrapperContainer = document.querySelector(".page");
+      wrapperContainer.innerHTML = '<div class="scrollable-container"></div>';
+      const scrollableContainer = document.querySelector(".scrollable-container");
+      results.forEach((result) => {
+        const resultDiv = document.createElement("div");
+        resultDiv.classList.add("result");
+        resultDiv.innerHTML = `
+          <h2>${result.name}</h2>
+          <img src="${result.imageUrl}" alt="${result.name}" height="150px" />
+           <p>${result.description}</p>
+        `;
+        scrollableContainer.appendChild(resultDiv);
+      });
+    }
+
+    document.getElementById("btnClear").addEventListener("click", function () {
+      document.getElementById("conditionInput").value = "";
+      document.querySelector(".page").innerHTML = `
+          <div class="wrapper-container">
+            <div class="wrapper">
+              <div class="welcome-section">
+                <header>Welcome to Travel Recommendations</header>
+                <p>
+                  Discover the best travel destinations and experiences curated just for you.
+                </p>
+                <p>Start your journey with us today!</p>
+              </div>
+
+              <div class="cta-button">
+                <button id="bookNow">Book Now</button>
+              </div>
+            </div>
+          </div>      `;
+    });
+  </script>
 </html>
